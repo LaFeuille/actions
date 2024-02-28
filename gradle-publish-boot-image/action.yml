@@ -1,0 +1,31 @@
+name: Gradle Publish Boot Image
+description: Publish a Spring Boot image to a Docker repository
+
+inputs:
+  artifact-version:
+    description: Artifact version (from a tag for example)
+    required: true
+  java-distribution:
+    description: Java Distribution (e.g. 'temurin' or 'oracle')
+    default: 'temurin'
+  java-version:
+    description: Java Version (e.g. '21')
+    default: '21'
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/checkout@v4
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ inputs.java-version }}
+        distribution: ${{ inputs.java-distribution }}
+    - name: Set up Gradle
+      uses: gradle/actions/setup-gradle@v3
+    - name: Publish to Github Packages
+      shell: bash
+      run: gradle -Pversion=${{ inputs.artifact-version }} bootBuildImage --publishImage
+      env:
+        USERNAME: ${{ github.actor }}
+        TOKEN: ${{ secrets.GITHUB_TOKEN }}
